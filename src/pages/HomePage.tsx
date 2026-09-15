@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { ConfirmDialog } from "../components/common/ConfirmDialog";
 import { SituationList } from "../components/situation/SituationList";
 import {
   createCustomScenario,
@@ -34,6 +35,10 @@ export function HomePage() {
   const [formError, setFormError] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
+  const [pendingDelete, setPendingDelete] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
 
   const refreshCustomScenarios = () => {
     setCustomScenarios(listCustomScenarios());
@@ -108,6 +113,15 @@ export function HomePage() {
 
     setFormError("");
     refreshCustomScenarios();
+  };
+
+  const confirmDeleteScenario = () => {
+    if (!pendingDelete) {
+      return;
+    }
+
+    handleDeleteScenario(pendingDelete.id);
+    setPendingDelete(null);
   };
 
   const handleRenameScenario = (scenarioId: string) => {
@@ -227,7 +241,12 @@ export function HomePage() {
                       <button
                         type="button"
                         className="small-button icon-button danger"
-                        onClick={() => handleDeleteScenario(scenario.id)}
+                        onClick={() =>
+                          setPendingDelete({
+                            id: scenario.id,
+                            name: scenario.name,
+                          })
+                        }
                         aria-label={`Delete checklist ${scenario.name}`}
                         title="Delete checklist"
                       >
@@ -361,6 +380,16 @@ export function HomePage() {
           </button>
         )}
       </section>
+
+      {pendingDelete ? (
+        <ConfirmDialog
+          title="Delete checklist?"
+          message={`This will permanently delete “${pendingDelete.name}” and all of its items.`}
+          confirmLabel="Delete checklist"
+          onConfirm={confirmDeleteScenario}
+          onCancel={() => setPendingDelete(null)}
+        />
+      ) : null}
     </main>
   );
 }

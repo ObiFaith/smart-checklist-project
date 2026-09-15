@@ -518,6 +518,66 @@ p {
   margin-top: -2px;
 }
 
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.48);
+}
+
+.confirm-dialog {
+  width: min(100%, 420px);
+  padding: 22px 18px 18px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--panel);
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.2);
+}
+
+.confirm-dialog h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.confirm-dialog p {
+  margin-top: 8px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.confirm-dialog-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.confirm-dialog-actions .secondary-button,
+.confirm-dialog-actions .danger-button {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 0;
+}
+
+.danger-button {
+  border: none;
+  border-radius: 10px;
+  padding: 12px 16px;
+  background: var(--danger);
+  color: white;
+  font-weight: 700;
+}
+
+.danger-button:hover,
+.danger-button:focus-visible {
+  filter: brightness(0.96);
+  outline: none;
+}
+
 .empty-state {
   border: 1px dashed var(--border);
   border-radius: 16px;
