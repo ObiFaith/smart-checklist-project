@@ -97,14 +97,10 @@ export const safeParseChecklist = (raw: string | null): Checklist | null => {
 };
 
 export const saveChecklist = (checklist: Checklist) => {
-  try {
-    localStorage.setItem(
-      getChecklistStorageKey(checklist.situationId),
-      JSON.stringify(checklist),
-    );
-  } catch {
-    // Ignore write failures in restricted browser contexts.
-  }
+  localStorage.setItem(
+    getChecklistStorageKey(checklist.situationId),
+    JSON.stringify(checklist),
+  );
 };
 
 export const getSavedChecklist = (situationId: string): Checklist => {
@@ -163,27 +159,38 @@ const validateCustomScenario = (
   };
 };
 
-export const listCustomScenarios = (): Situation[] => {
-  const raw = localStorage.getItem(CUSTOM_SCENARIOS_KEY);
-
-  if (!raw) {
-    return [];
-  }
-
+const readCustomScenarios = (): {
+  scenarios: Situation[];
+  succeeded: boolean;
+} => {
   try {
+    const raw = localStorage.getItem(CUSTOM_SCENARIOS_KEY);
+
+    if (!raw) {
+      return { scenarios: [], succeeded: true };
+    }
+
     const parsed = JSON.parse(raw);
 
     if (!Array.isArray(parsed)) {
-      return [];
+      return { scenarios: [], succeeded: true };
     }
 
-    return parsed
-      .map((scenario) => validateCustomScenario(scenario as Partial<Situation>))
-      .filter((scenario): scenario is Situation => scenario !== null);
+    return {
+      scenarios: parsed
+        .map((scenario) =>
+          validateCustomScenario(scenario as Partial<Situation>),
+        )
+        .filter((scenario): scenario is Situation => scenario !== null),
+      succeeded: true,
+    };
   } catch {
-    return [];
+    return { scenarios: [], succeeded: false };
   }
 };
+
+export const listCustomScenarios = (): Situation[] =>
+  readCustomScenarios().scenarios;
 
 export const getCustomScenarioById = (situationId: string | undefined) =>
   listCustomScenarios().find((scenario) => scenario.id === situationId);
@@ -203,7 +210,13 @@ export const createCustomScenario = ({
     throw new Error("Checklist name is required.");
   }
 
-  const existingScenarios = listCustomScenarios();
+  const metadata = readCustomScenarios();
+
+  if (!metadata.succeeded) {
+    throw new Error("Could not read existing checklists.");
+  }
+
+  const existingScenarios = metadata.scenarios;
   const hasDuplicateName = existingScenarios.some(
     (scenario) =>
       scenario.name.trim().toLowerCase() === trimmedName.toLowerCase(),
@@ -221,9 +234,6 @@ export const createCustomScenario = ({
     isTemplate: false,
   };
 
-  const nextScenarios = [...existingScenarios, scenario];
-  localStorage.setItem(CUSTOM_SCENARIOS_KEY, JSON.stringify(nextScenarios));
-
   const normalizedItems = (items ?? [])
     .map((item) =>
       typeof item === "string"
@@ -234,18 +244,54 @@ export const createCustomScenario = ({
       (item): item is ChecklistItem => item !== null && item.name.length > 0,
     );
 
-  saveChecklist({ situationId: scenario.id, items: normalizedItems });
+  const nextScenarios = [...existingScenarios, scenario];
+  localStorage.setItem(CUSTOM_SCENARIOS_KEY, JSON.stringify(nextScenarios));
+
+  try {
+    saveChecklist({ situationId: scenario.id, items: normalizedItems });
+  } catch (error) {
+    try {
+      localStorage.setItem(
+        CUSTOM_SCENARIOS_KEY,
+        JSON.stringify(existingScenarios),
+      );
+    } catch {
+      // Preserve the original checklist write failure.
+    }
+
+    throw error;
+  }
 
   return scenario;
 };
 
-export const deleteCustomScenario = (situationId: string) => {
-  const nextScenarios = listCustomScenarios().filter(
+export const deleteCustomScenario = (situationId: string): boolean => {
+  const metadata = readCustomScenarios();
+
+  if (!metadata.succeeded) {
+    return false;
+  }
+
+  const nextScenarios = metadata.scenarios.filter(
     (scenario) => scenario.id !== situationId,
   );
 
-  localStorage.setItem(CUSTOM_SCENARIOS_KEY, JSON.stringify(nextScenarios));
-  localStorage.removeItem(getChecklistStorageKey(situationId));
+  try {
+    localStorage.setItem(CUSTOM_SCENARIOS_KEY, JSON.stringify(nextScenarios));
+    localStorage.removeItem(getChecklistStorageKey(situationId));
+    return true;
+  } catch {
+    try {
+      localStorage.setItem(
+        CUSTOM_SCENARIOS_KEY,
+        JSON.stringify(metadata.scenarios),
+      );
+    } catch {
+      // Restoration is best effort after a failed deletion.
+    }
+
+    return false;
+  }
 };
 
 export const renameCustomScenario = (situationId: string, name: string) => {
@@ -255,7 +301,21 @@ export const renameCustomScenario = (situationId: string, name: string) => {
     throw new Error("Checklist name is required.");
   }
 
-  const currentScenarios = listCustomScenarios();
+  const metadata = readCustomScenarios();
+
+  if (!metadata.succeeded) {
+    throw new Error("Could not read existing checklists.");
+  }
+
+  const currentScenarios = metadata.scenarios;
+  const scenarioExists = currentScenarios.some(
+    (scenario) => scenario.id === situationId,
+  );
+
+  if (!scenarioExists) {
+    throw new Error("Checklist not found.");
+  }
+
   const hasDuplicateName = currentScenarios.some(
     (scenario) =>
       scenario.id !== situationId &&

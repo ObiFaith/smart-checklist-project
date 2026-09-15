@@ -99,7 +99,14 @@ export function HomePage() {
   };
 
   const handleDeleteScenario = (scenarioId: string) => {
-    deleteCustomScenario(scenarioId);
+    const deleted = deleteCustomScenario(scenarioId);
+
+    if (!deleted) {
+      setFormError("Could not delete checklist. Please try again.");
+      return;
+    }
+
+    setFormError("");
     refreshCustomScenarios();
   };
 
@@ -138,6 +145,8 @@ export function HomePage() {
 
       <section className="panel" aria-labelledby="custom-heading">
         <h2 id="custom-heading">My Checklists</h2>
+
+        {formError ? <p className="form-error">{formError}</p> : null}
 
         {customScenarios.length === 0 && !showCreateForm ? (
           <div className="empty-state custom-empty-state">
@@ -317,8 +326,6 @@ export function HomePage() {
                 ))}
               </div>
             ) : null}
-
-            {formError ? <p className="form-error">{formError}</p> : null}
 
             <div className="inline-actions">
               <button
