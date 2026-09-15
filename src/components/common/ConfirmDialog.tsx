@@ -24,7 +24,8 @@ export function ConfirmDialog({
   }, [onCancel]);
 
   useEffect(() => {
-    const previouslyFocusedElement = document.activeElement as HTMLElement | null;
+    const previouslyFocusedElement =
+      document.activeElement as HTMLElement | null;
     const dialog = dialogRef.current;
 
     cancelButtonRef.current?.focus();
