@@ -9,6 +9,7 @@ export interface Situation {
   name: string;
   icon: string;
   description: string;
+  isTemplate: boolean;
 }
 
 export interface Checklist {
