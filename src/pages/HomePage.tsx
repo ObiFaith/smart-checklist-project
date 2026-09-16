@@ -8,19 +8,7 @@ import {
   listCustomScenarios,
   renameCustomScenario,
 } from "../services/checklistStorage";
-
-const availableIcons = [
-  "✨",
-  "💼",
-  "✈️",
-  "🎓",
-  "🏋️",
-  "🏠",
-  "💻",
-  "⛪",
-  "🎯",
-  "🧳",
-];
+import { availableIcons } from "../data/availableIcons";
 
 export function HomePage() {
   const navigate = useNavigate();

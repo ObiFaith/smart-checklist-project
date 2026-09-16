@@ -16,3 +16,14 @@ export interface Checklist {
   situationId: string;
   items: ChecklistItem[];
 }
+
+export type ChecklistProps = {
+  items: ChecklistItem[];
+  completedCount: number;
+  totalCount: number;
+  progress: number;
+  onToggle: (id: string) => void;
+  onDelete: (id: string) => void;
+  onAddItem: (name: string) => boolean;
+  onReset: () => void;
+};

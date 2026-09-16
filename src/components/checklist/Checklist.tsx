@@ -1,18 +1,7 @@
 import { AddItemForm } from "./AddItemForm";
 import { ChecklistItem } from "./ChecklistItem";
 import { ChecklistProgress } from "./ChecklistProgress";
-import type { ChecklistItem as ChecklistItemType } from "../../types/checklist";
-
-type ChecklistProps = {
-  items: ChecklistItemType[];
-  completedCount: number;
-  totalCount: number;
-  progress: number;
-  onToggle: (id: string) => void;
-  onDelete: (id: string) => void;
-  onAddItem: (name: string) => boolean;
-  onReset: () => void;
-};
+import type { ChecklistProps } from "../../types/checklist";
 
 export function Checklist({
   items,

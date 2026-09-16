@@ -34,6 +34,11 @@ export function AddItemForm({ onAddItem }: AddItemFormProps) {
       <label htmlFor="new-item" className="sr-only">
         Add a checklist item
       </label>
+      {error ? (
+        <p id="add-item-error" className="form-error" role="alert">
+          {error}
+        </p>
+      ) : null}
       <input
         id="new-item"
         type="text"
@@ -51,11 +56,6 @@ export function AddItemForm({ onAddItem }: AddItemFormProps) {
       <button type="submit" className="primary-button">
         + Add Item
       </button>
-      {error ? (
-        <p id="add-item-error" className="form-error" role="alert">
-          {error}
-        </p>
-      ) : null}
     </form>
   );
 }
